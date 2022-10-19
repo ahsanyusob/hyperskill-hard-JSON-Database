@@ -1,0 +1,188 @@
+type: edu
+files:
+- name: src/client/Main.java
+  visible: true
+  text: |
+    package client;
+
+    public class Main {
+
+        public static void main(String[] args) { }
+
+        }
+  learner_created: false
+- name: src/server/Main.java
+  visible: true
+  text: |
+    package server;
+
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Scanner;
+
+    public class Main {
+
+        public static void main(String[] args) {
+            Boolean running = true;
+            Scanner scanner = new Scanner(System.in);
+            List<String> database100 = new ArrayList<>(100);
+            for (int i = 0; i < 100; i++) {
+                database100.add("");
+            }
+
+            while (running) {
+                String[] userInput = scanner.nextLine().split(" ", 3);
+                String input1 = userInput[0];
+                String input2 = userInput.length > 1 ? userInput[1] : "";
+                String input3 = userInput.length == 3 ? userInput[2] : "";
+                int number = 0;
+                try {
+                    number = Integer.parseInt(input2);
+                } catch (NumberFormatException e) {
+                }
+
+                switch (input1) {
+
+                    case "set":
+                        if (number > 0 && number <= 100) {
+                            System.out.println("OK");
+                            database100.set(number - 1, input3);
+                        } else {
+                            System.out.println("ERROR");
+                        }
+                        break;
+                    case "get":
+                        if (number > 0 && number <= 100 && database100.get(number - 1) != "") {
+                            System.out.println(database100.get(number - 1));
+                        } else {
+                            System.out.println("ERROR");
+                        }
+                        break;
+                    case "delete":
+                        if (database100.get(number - 1) != "") {
+                            break;
+                        } else if (number > 0 && number <= 100) {
+                            System.out.println("OK");
+                            database100.set(number - 1, "");
+                        } else {
+                            System.out.println("ERROR");
+                        }
+                        break;
+                    case "exit":
+                        running = false;
+                        break;
+                    default:
+                        System.out.println("ERROR");
+                        break;
+                }
+            }
+        }
+    }
+  learner_created: false
+- name: test/JsonDatabaseTest.java
+  visible: false
+  text: |
+    import org.hyperskill.hstest.dynamic.DynamicTest;
+    import org.hyperskill.hstest.stage.StageTest;
+    import org.hyperskill.hstest.testcase.CheckResult;
+    import org.hyperskill.hstest.testing.TestedProgram;
+
+    public class JsonDatabaseTest extends StageTest<String> {
+
+        private static final String CORRECT_SERVER_OUTPUT =
+            "Server started!\n" +
+                "Received: Give me a record # N\n" +
+                "Sent: A record # N was sent!";
+
+        private static final String CORRECT_CLIENT_OUTPUT =
+            "Client started!\n" +
+                "Sent: Give me a record # N\n" +
+                "Received: A record # N was sent!";
+
+        @DynamicTest(order = 1)
+        CheckResult test() {
+
+            TestedProgram server = new TestedProgram("server");
+            server.startInBackground();
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            String serverOutput = server.getOutput().trim();
+
+            if (!serverOutput.trim().equals("Server started!")) {
+                return CheckResult.wrong("Server output should be 'Server started!' until a client connects!");
+            }
+
+            TestedProgram client = new TestedProgram("client");
+
+            String clientOutput = client.start();
+            serverOutput += "\n" + server.getOutput();
+
+            String[] serverOutputLines = serverOutput.split("\n");
+
+            if (serverOutputLines.length != 3) {
+                return CheckResult.wrong("After the client connects to the server, the server output should contain 3 lines!");
+            }
+
+            String serverOutputLastLine = serverOutputLines[serverOutputLines.length - 1];
+
+            if (!serverOutputLastLine.contains("Sent: A record #") || !serverOutputLastLine.contains("was sent!")) {
+                return CheckResult.wrong("Server output after client connects to the server should be:\n"
+                    + CORRECT_SERVER_OUTPUT + "\n\nWhere N is some number.\n\nYour output:\n" + serverOutput);
+            }
+
+            String[] clientOutputLines = clientOutput.split("\n");
+
+            if (clientOutputLines.length != 3) {
+                return CheckResult.wrong("After the client connects to the server, the client output should contain 3 lines!");
+            }
+
+            String clientOutputLastLine = clientOutputLines[clientOutputLines.length - 1];
+
+            if (!clientOutputLastLine.contains("Received: A record #") || !clientOutputLastLine.contains("was sent!")) {
+                return CheckResult.wrong("Client output after client connects to the server should be:\n"
+                    + CORRECT_CLIENT_OUTPUT + "\n\nWhere N is some number.\n\nYour output:\n" + clientOutput);
+            }
+
+            return CheckResult.correct();
+        }
+    }
+  learner_created: false
+- name: src/server/Database.java
+  visible: true
+  text: |
+    package server;
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Database {
+        public static int SIZE;
+        private List<String> CONTENT = new ArrayList<>();
+
+        public Database(int SIZE) {
+            this.SIZE = SIZE;
+            for (int i = 0; i < this.SIZE; i++) {
+                this.CONTENT.add("");
+            }
+        }
+
+        public String get(int index) {
+            return this.CONTENT.get(index);
+        }
+
+        public void set(int index, String content) {
+            this.CONTENT.set(index, content);
+        }
+    }
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/5491#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Fri, 14 Oct 2022 15:15:31 UTC
+record: 2
